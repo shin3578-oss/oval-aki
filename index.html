@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>予約の空き状況｜大崎オーバルコート歯科・矯正歯科室</title>
+<meta name="description" content="大崎オーバルコート歯科・矯正歯科室の、本日・明日の予約の空き状況です。">
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#f6f8f7; --card:#fff; --ink:#1f2a28; --sub:#5d6b68; --line:#e2e8e6;
+    --main:#2f8f83; --main-soft:#e5f3f1; --dh:#d9822b; --dh-soft:#fcefe1;
+    --line-green:#06c755;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;
+    line-height:1.6;-webkit-text-size-adjust:100%}
+  header{background:var(--main);color:#fff;padding:20px 16px 18px;text-align:center}
+  header .clinic{font-size:13px;opacity:.9;letter-spacing:.02em}
+  header h1{margin:4px 0 0;font-size:22px;font-weight:700}
+  main{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+  .note{font-size:13px;color:var(--sub);margin:0 0 14px}
+  .day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  .day h2{margin:0;font-size:20px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .badge{font-size:13px;font-weight:700;color:#fff;background:var(--main);border-radius:999px;padding:2px 10px}
+  .badge.next{background:#7a8a87}
+  .stamp{font-size:12px;color:var(--sub);margin:2px 0 10px}
+  .kind{margin-top:12px}
+  .kind h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
+  .times{display:flex;flex-wrap:wrap;gap:8px}
+  .t{display:inline-block;min-width:68px;text-align:center;font-size:17px;font-weight:700;
+    padding:9px 10px;border-radius:10px;text-decoration:none;color:var(--main);background:var(--main-soft);
+    border:1px solid transparent}
+  .t:active{border-color:var(--main)}
+  .dh .t{color:var(--dh);background:var(--dh-soft)}
+  .dh .t:active{border-color:var(--dh)}
+  .full{color:var(--sub);font-size:15px}
+  .closed{font-size:16px;color:var(--sub);padding:6px 0}
+  .tip{font-size:13px;color:var(--sub);margin:12px 0 0}
+  .contact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .contact p{margin:0 0 12px;font-size:15px}
+  .btn{display:block;text-align:center;text-decoration:none;font-weight:700;font-size:17px;
+    border-radius:12px;padding:14px;margin-top:10px}
+  .btn.tel{background:var(--main);color:#fff}
+  .btn.line{background:var(--line-green);color:#fff}
+  .empty{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;color:var(--sub)}
+  footer{text-align:center;font-size:12px;color:var(--sub);padding:0 16px 24px}
+</style>
+</head>
+<body>
+<header>
+  <div class="clinic">大崎オーバルコート歯科・矯正歯科室</div>
+  <h1>予約の空き状況</h1>
+</header>
+<main>
+  <p class="note">空き状況は随時変わります。時刻を押すと、LINEでそのままご希望をお送りいただけます。</p>
+  <div id="days"><div class="empty">読み込み中です…</div></div>
+
+  <section class="contact">
+    <p>ご希望の方は、お電話またはLINEでお問い合わせください。<br>スタッフ一同お待ちしております。</p>
+    <a class="btn tel" href="tel:0357391625">📞 電話する（03-5739-1625）</a>
+    <a class="btn line" id="lineBtn" href="https://line.me/R/oaMessage/%40rgd4441j/">💬 LINEで問い合わせる</a>
+  </section>
+</main>
+<footer>大崎オーバルコート歯科・矯正歯科室</footer>
+
+<script>
+(function(){
+  var WD = ["日","月","火","水","木","金","土"];
+  var OA = "https://line.me/R/oaMessage/%40rgd4441j/?";
+
+  function jstToday(){
+    var n = new Date(Date.now() + 9*3600*1000);
+    return n.toISOString().slice(0,10);
+  }
+  function label(iso){
+    var p = iso.split("-"), d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+    return (+p[1]) + "/" + (+p[2]) + "(" + WD[d.getUTCDay()] + ")";
+  }
+  function stamp(updated){
+    var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(updated || "");
+    return m ? (+m[2]) + "/" + (+m[3]) + " " + (+m[4]) + ":" + m[5] + " 時点の空き" : "";
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  function timesHtml(list, dayLabel, kindName){
+    if (!list || !list.length) return '<div class="full">ただいま満枠です</div>';
+    return '<div class="times">' + list.map(function(t){
+      var msg = dayLabel + " " + t + " の" + kindName + "を希望します。";
+      return '<a class="t" href="' + OA + encodeURIComponent(msg) + '">' + esc(t) + '</a>';
+    }).join("") + '</div>';
+  }
+
+  function render(data){
+    var today = jstToday();
+    var tomorrow = new Date(Date.parse(today + "T00:00:00Z") + 86400000).toISOString().slice(0,10);
+    var days = (data.days || []).filter(function(d){ return d.date >= today; })
+                                 .sort(function(a,b){ return a.date < b.date ? -1 : 1; })
+                                 .slice(0, 2);
+    var box = document.getElementById("days");
+    if (!days.length){
+      box.innerHTML = '<div class="empty">最新の空き情報を準備中です。<br>お手数ですが、お電話かLINEでお問い合わせください。</div>';
+      return;
+    }
+    box.innerHTML = days.map(function(d){
+      var lb = label(d.date);
+      var tag = d.date === today    ? '<span class="badge">本日</span>'
+              : d.date === tomorrow ? '<span class="badge next">明日</span>'
+              : '<span class="badge next">次の診療日</span>';
+      var body = d.closed
+        ? '<div class="closed">休診日です</div>'
+        : '<div class="kind dh"><h3>😊 検診（成人・お子様）</h3>' + timesHtml(d.dh, lb, "検診") + '</div>'
+        + '<div class="kind"><h3>🦷 治療</h3>' + timesHtml(d.dr, lb, "治療") + '</div>';
+      return '<section class="day"><h2>' + tag + esc(lb) + '</h2><div class="stamp">' + esc(stamp(d.updated)) + '</div>' + body + '</section>';
+    }).join("") + '<p class="tip">※ 表示より後にご予約が入り、埋まっている場合があります。</p>';
+  }
+
+  fetch("data.json?t=" + Date.now(), {cache: "no-store"})
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(render)
+    .catch(function(){
+      document.getElementById("days").innerHTML =
+        '<div class="empty">空き情報を読み込めませんでした。<br>お手数ですが、お電話かLINEでお問い合わせください。</div>';
+    });
+})();
+</script>
+</body>
+</html>
