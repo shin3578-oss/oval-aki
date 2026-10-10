@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>予約の空き状況｜大崎オーバルコート歯科・矯正歯科室</title>
-<meta name="description" content="大崎オーバルコート歯科・矯正歯科室の、本日・明日の予約の空き状況です。">
+<meta name="description" content="大崎オーバルコート歯科・矯正歯科室の、近日3日間（診療日）の予約の空き状況です。">
 <meta name="robots" content="noindex">
 <style>
   :root{
@@ -36,7 +36,7 @@
   .dh .t{color:var(--dh);background:var(--dh-soft)}
   .dh .t:active{border-color:var(--dh)}
   .full{color:var(--sub);font-size:15px}
-  .closed{font-size:16px;color:var(--sub);padding:6px 0}
+  .closed-today{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:16px;color:var(--sub);font-size:15px}
   .tip{font-size:13px;color:var(--sub);margin:12px 0 0}
   .contact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
   .contact p{margin:0 0 12px;font-size:15px}
@@ -94,25 +94,29 @@
 
   function render(data){
     var today = jstToday();
-    var tomorrow = new Date(Date.parse(today + "T00:00:00Z") + 86400000).toISOString().slice(0,10);
-    var days = (data.days || []).filter(function(d){ return d.date >= today; })
-                                 .sort(function(a,b){ return a.date < b.date ? -1 : 1; })
-                                 .slice(0, 2);
+    var base = Date.parse(today + "T00:00:00Z");
+    var tomorrow = new Date(base + 86400000).toISOString().slice(0,10);
+    var dayAfter = new Date(base + 2*86400000).toISOString().slice(0,10);
+    var all = (data.days || []).filter(function(d){ return d.date >= today; })
+                               .sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+    // 休診日は飛ばして診療日を3日分（本日が休診なら一言だけ添える）
+    var todayClosed = all.some(function(d){ return d.date === today && d.closed; });
+    var days = all.filter(function(d){ return !d.closed; }).slice(0, 3);
     var box = document.getElementById("days");
     if (!days.length){
       box.innerHTML = '<div class="empty">最新の空き情報を準備中です。<br>お手数ですが、お電話かLINEでお問い合わせください。</div>';
       return;
     }
-    box.innerHTML = days.map(function(d){
+    box.innerHTML = (todayClosed ? '<div class="closed-today">本日（' + esc(label(today)) + '）は休診日です。</div>' : '')
+      + days.map(function(d){
       var lb = label(d.date);
       var tag = d.date === today    ? '<span class="badge">本日</span>'
               : d.date === tomorrow ? '<span class="badge next">明日</span>'
-              : '<span class="badge next">次の診療日</span>';
-      var body = d.closed
-        ? '<div class="closed">休診日です</div>'
-        : '<div class="kind dh"><h3>😊 検診（成人・お子様）</h3>' + timesHtml(d.dh, lb, "検診") + '</div>'
+              : d.date === dayAfter ? '<span class="badge next">あさって</span>'
+              : '';
+      var body = '<div class="kind dh"><h3>😊 検診（成人・お子様）</h3>' + timesHtml(d.dh, lb, "検診") + '</div>'
         + '<div class="kind"><h3>🦷 治療</h3>' + timesHtml(d.dr, lb, "治療") + '</div>';
-      return '<section class="day"><h2>' + tag + esc(lb) + '</h2>' + (d.closed ? '' : '<div class="stamp">' + esc(stamp(d.updated)) + '</div>') + body + '</section>';
+      return '<section class="day"><h2>' + tag + esc(lb) + '</h2><div class="stamp">' + esc(stamp(d.updated)) + '</div>' + body + '</section>';
     }).join("") + '<p class="tip">※ 表示より後にご予約が入り、埋まっている場合があります。</p>';
   }
 
