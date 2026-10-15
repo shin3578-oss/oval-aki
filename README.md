@@ -6,5 +6,5 @@
 一斉配信（通知が鳴る＝ブロックの原因）の代わりに、患者さんが見たいときに見に来る形にした（2026-10-10 院長指示）。
 
 - `index.html` … 画面。開くたびに `data.json` を読む。時刻を押すとLINEのトークに「◯/◯ ◯:◯◯ の治療を希望します。」が入った状態で開く
-- `data.json` … 空き枠。**毎日15:00（日〜金）に apotool-automation の `gbp_slot_post.py`（`aki_page_publish.py`）が書き換える**。手で直してもよい
+- `data.json` … 空き枠。**毎日8:30（月〜土）と15:00（日〜金）に apotool-automation の `gbp_slot_post.py`・`aki_page_ahead.py`（`aki_page_publish.py`）が書き換える**。「◯時点の空き」は起動時刻（8:30／15:00）にそろえる手で直してもよい
 - 載せるのは日付と空き時刻だけ。患者情報は載せない（公開リポジトリのため）
